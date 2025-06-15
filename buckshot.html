@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buckshot Roulette</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+    body {
+      font-family: 'Creepster', cursive;
+      background-color: #111;
+      color: #eee;
+      text-align: center;
+      padding: 2rem;
+      transition: background-color 0.3s;
+    }
+    button, input {
+      font-size: 1.2rem;
+      padding: 0.6rem 1.2rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .tool { background-color: #444; color: white; }
+    .start { background-color: green; color: white; }
+    .input-group { margin-bottom: 1rem; }
+    .gun-image {
+      width: 220px;
+      margin-top: 2rem;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .shake-small { transform: translateX(5px) rotate(2deg); }
+    .shake-big { transform: translateX(15px) rotate(8deg); }
+    #tools { font-size: 0.8rem; margin-top: 2rem; opacity: 0.7; }
+    #log { margin-top: 1.5rem; min-height: 2rem; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Buckshot Roulette</h1>
+  <div id="setup">
+    <div class="input-group">
+      <label>공포탄 개수: <input type="number" id="blankInput" value="1" min="0"></label>
+    </div>
+    <div class="input-group">
+      <label>실탄 개수: <input type="number" id="liveInput" value="1" min="0"></label>
+    </div>
+    <button class="start" onclick="startGame()">게임 시작</button>
+  </div>
+  <div id="game" style="display:none">
+    <img id="gun" class="gun-image" onclick="triggerShot()" alt="gun" src="">
+    <div id="log"></div>
+    <div id="tools">
+      <button class="tool" onclick="useMagnifyingGlass()">🔍 루페</button>
+      <button class="tool" onclick="useBeer()">🍺 맥주</button>
+      <button class="tool" onclick="useInverter()">↔️ 인버터</button>
+      <button class="tool" onclick="useBurnerPhone()">📱 버너폰</button>
+    </div>
+  </div>
+
+  <audio id="boom" src="sounds/boom.mp3"></audio>
+  <audio id="click" src="sounds/click.mp3"></audio>
+
+  <script>
+    let chambers = [], currentIndex = 0, chamberSize = 0, busy = false;
+    const gunImg = document.getElementById('gun');
+
+    function logMessage(m) {
+      document.getElementById('log').textContent = m;
+    }
+
+    function flashScreen() {
+      document.body.style.backgroundColor = '#ff0000';
+      setTimeout(() => document.body.style.backgroundColor = '#111', 150);
+    }
+
+    function startGame() {
+      const blanks = parseInt(document.getElementById('blankInput').value) || 0;
+      const lives = parseInt(document.getElementById('liveInput').value) || 0;
+      chamberSize = blanks + lives;
+      if (chamberSize === 0) {
+        logMessage('약실이 비었습니다');
+        return;
+      }
+      chambers = new Array(chamberSize).fill('blank');
+      currentIndex = 0;
+      let placed = 0;
+      while (placed < lives) {
+        const p = Math.floor(Math.random() * chamberSize);
+        if (chambers[p] !== 'live') {
+          chambers[p] = 'live';
+          placed++;
+        }
+      }
+      document.getElementById('setup').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      logMessage('게임 시작...');
+    }
+
+    function returnToSetup() {
+      document.getElementById('game').style.display = 'none';
+      document.getElementById('setup').style.display = 'block';
+    }
+
+    function triggerShot() {
+      if (busy || currentIndex >= chamberSize) return;
+      busy = true;
+      logMessage('...');
+      setTimeout(resolveShot, 3000 + Math.random() * 3000);
+    }
+
+    function resolveShot() {
+      const round = chambers[currentIndex];
+      if (round === 'live') {
+        document.getElementById('boom').play();
+        navigator.vibrate(500);
+        flashScreen();
+        shake('big');
+        logMessage('💥 실탄!');
+      } else {
+        document.getElementById('click').play();
+        shake('small');
+        logMessage('딸깍!');
+      }
+      currentIndex++;
+      busy = false;
+      if (currentIndex === chamberSize) {
+        setTimeout(() => {
+          logMessage('탄이 모두 소진되었습니다. 메인 화면으로 돌아갑니다.');
+          setTimeout(returnToSetup, 1000);
+        }, 800);
+      }
+    }
+
+    function shake(level) {
+      gunImg.classList.add(level === 'big' ? 'shake-big' : 'shake-small');
+      setTimeout(() => gunImg.classList.remove('shake-big', 'shake-small'), 160);
+    }
+
+    function useMagnifyingGlass() {
+      if (currentIndex >= chamberSize) return logMessage('빈 약실');
+      logMessage(`루페: ${chambers[currentIndex] === 'live' ? '실탄' : '공포탄'}`);
+    }
+
+    function useBeer() {
+      if (currentIndex >= chamberSize) return logMessage('빈 약실');
+      const r = chambers[currentIndex];
+      chambers[currentIndex] = 'blank';
+      logMessage(`🍺 맥주: ${r === 'live' ? '실탄' : '공포탄'} 제거`);
+    }
+
+    function useInverter() {
+      if (currentIndex >= chamberSize) return logMessage('빈 약실');
+      chambers[currentIndex] = chambers[currentIndex] === 'live' ? 'blank' : 'live';
+      logMessage('↔️ 인버터 사용');
+    }
+
+    function useBurnerPhone() {
+      if (currentIndex >= chamberSize) return logMessage('빈 약실');
+      const idx = Math.floor(Math.random() * (chamberSize - currentIndex)) + currentIndex;
+      logMessage(`버너폰: ${idx + 1}번째 탄은 ${chambers[idx] === 'live' ? '실탄' : '공포탄'}`);
+    }
+  </script>
+</body>
+</html>
