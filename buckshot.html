@@ -30,9 +30,10 @@
       margin-top: 2rem;
       cursor: pointer;
       transition: transform 0.15s ease;
+      transform: scaleX(-1);
     }
-    .shake-small { transform: translateX(5px) rotate(2deg); }
-    .shake-big { transform: translateX(15px) rotate(8deg); }
+    .shake-small { transform: scaleX(-1) translateX(8px) rotate(3deg); }
+    .shake-big   { transform: scaleX(-1) translateX(20px) rotate(10deg); }
     #tools { font-size: 0.8rem; margin-top: 2rem; opacity: 0.7; }
     #log { margin-top: 1.5rem; min-height: 2rem; font-size: 1.2rem; }
   </style>
@@ -49,7 +50,7 @@
     <button class="start" onclick="startGame()">게임 시작</button>
   </div>
   <div id="game" style="display:none">
-    <img id="gun" class="gun-image" onclick="triggerShot()" alt="gun" src="">
+    <img id="gun" class="gun-image" onclick="triggerShot()" alt="gun" src="https://raw.githubusercontent.com/foggyjupiter/buckshot/main/gun_PNG1384.png">
     <div id="log"></div>
     <div id="tools">
       <button class="tool" onclick="useMagnifyingGlass()">🔍 루페</button>
@@ -59,8 +60,8 @@
     </div>
   </div>
 
-  <audio id="boom" src="sounds/boom.mp3"></audio>
-  <audio id="click" src="sounds/click.mp3"></audio>
+  <audio id="boom" src="https://raw.githubusercontent.com/foggyjupiter/buckshot/main/boom.mp3"></audio>
+  <audio id="click" src="https://raw.githubusercontent.com/foggyjupiter/buckshot/main/click.mp3"></audio>
 
   <script>
     let chambers = [], currentIndex = 0, chamberSize = 0, busy = false;
